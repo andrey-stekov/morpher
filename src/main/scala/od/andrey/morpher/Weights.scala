@@ -19,9 +19,11 @@ class Weights[T] {
     if (groups contains group) Option.apply(groups(group) / total) else Option.empty
   }
 
+  def weights = groups.map {case (group, count) => (group, count / total)}
+
   def rank = weights.toList.sortBy(_._2).reverse
 
-  def weights = groups.map {case (group, count) => (group, count / total)}
+  def max = rank.head._1
 
   override def toString = "Weights( " + weights.toString() + " )"
 }

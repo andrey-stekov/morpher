@@ -10,6 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 
 class Dictionary {
+  println("Start dictionary initializing")
+
+  val BATCH_SIZE = 1000
+
   val tabDescriptors = Source.fromInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("tab"))
                       .getLines()
                       .filter((l) => !l.startsWith("//") && l.trim.nonEmpty)
@@ -17,6 +21,8 @@ class Dictionary {
                       .foldLeft(Map[String, String]())((m, t) => {
                           m + ((t(0), t(1)))
                         })
+  println("Tab section read")
+
   val mrdReader = new BufferedReader(
                     new InputStreamReader(
                         Thread.currentThread().getContextClassLoader().getResourceAsStream("mrd")))
@@ -28,15 +34,18 @@ class Dictionary {
         case List(s) => if (s.nonEmpty) throw new IllegalStateException("Illegal MRD item: \"%s\"".format(item)) else null
       }
     }).filter(_ != null).toList
-  })
+  }, false)
+  println("Flexions section read")
 
   skipSection(mrdReader) // accentual models
   skipSection(mrdReader) // user sessions
   skipSection(mrdReader) // prefix sets
+  println("Skiped section read")
 
   val lemmas = new mutable.MutableList[Lemma]
   val postfixTree: Trie[List[Int]] = new Trie[List[Int]]
   val prefixTree: Trie[List[Int]] = new Trie[List[Int]]
+  val postfixInfoTree: Trie[EndsInfo] = new Trie[EndsInfo]
   val refId: AtomicInteger = new AtomicInteger
 
   readSection(mrdReader, (l) => {
@@ -60,6 +69,7 @@ class Dictionary {
           if (!visitedAffix.contains(affix)) {
             visitedAffix += affix
             addToTree(postfixTree, affix, id)
+            addToTree(postfixInfoTree, base, affix, flexNumb.toInt)
           }
           if (f.prefix.nonEmpty && !visitedPrefixes.contains(f.prefix)) {
             visitedPrefixes += f.prefix
@@ -68,7 +78,8 @@ class Dictionary {
           true
         })
     }
-  })
+  }, true)
+  println("Lemmas section read")
 
   private def addToTree(trie: Trie[List[Int]], word: String, id: Int) = {
     val list = trie(word) match {
@@ -79,12 +90,27 @@ class Dictionary {
     trie += (word, id::list)
   }
 
-  private def readSection[O](reader: BufferedReader, mapper: String => O): mutable.MutableList[O] = {
+  private def addToTree(trie: Trie[EndsInfo], base: String, affix: String, flexNumb: Int) = {
+    val info = trie(affix) match {
+      case Some(info: EndsInfo) => info
+      case None => new EndsInfo
+      case null => new EndsInfo
+    }
+    info += (base, flexNumb)
+    trie += (affix, info)
+  }
+
+  private def readSection[O](reader: BufferedReader, mapper: String => O, logging: Boolean): mutable.MutableList[O] = {
     val result = new mutable.MutableList[O]
     val number = reader.readLine().toInt
+
+    if (logging) println("Section size: %d".format(number))
+
     for (i <- 1 to number) {
       val line = reader.readLine()
       result += mapper(line)
+
+      if (logging && i % BATCH_SIZE == 0) println("Processed %d lines".format(i))
     }
     result
   }
@@ -107,7 +133,7 @@ class Dictionary {
       fixChars(prefix))
   }
 
-  def lookupWord(word: String) = {
+  def lookup(word: String) = {
     val lower = fixChars(word.toLowerCase)
     val prefixLookup = prefixTree.findVariants(lower)
     val postfixLookup = postfixTree.findVariants(lower.reverse)
@@ -123,7 +149,30 @@ class Dictionary {
     })
   }
 
-  def getByEnding(word:String) ={
-    postfixTree.findVariants(fixChars(word.toLowerCase).reverse)
+  def suggests(word:String) = {
+    val lower = fixChars(word.toLowerCase)
+    val endings = postfixInfoTree.findVariants(lower.reverse)
+    endings.map((entry: Tuple2[String, EndsInfo]) => (entry._1.length, entry._2))
+           .toList
+           .sortBy(_._1)
+           .last match {
+               case (affixLength, info) =>
+                 val base = lower.substring(0, lower.length - affixLength)
+                 info(base) match {
+                   case Some(flexNumb: Int) => Option.apply(new Lemma(base, allFlexions(flexNumb)))
+                   case None => Option.empty
+                 }
+           }
+  }
+
+  def lookupOrSuggests(word:String): Set[Lemma] = {
+    val set = lookup(word)
+
+    if (set.nonEmpty) {
+      set
+    } else {
+      val lemma = suggests(word)
+      if (lemma.nonEmpty) Set(lemma.get) else Set.empty
+    }
   }
 }

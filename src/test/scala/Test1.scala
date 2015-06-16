@@ -6,11 +6,14 @@ import od.andrey.morpher.{Lemma, Dictionary}
 object Test1 {
   def main(args: Array[String]) {
     val dictionary = new Dictionary
-    dictionary.lookupWord("бутявка").foreach((lemma) => {
+    dictionary.lookupOrSuggests("суки").foreach((lemma) => {
       lemma.flexions.foreach((flexion) => println(lemma.word(flexion)))
     })
-    val l = dictionary.getByEnding("бутявка")
-    val l1 = new Lemma("бутяв", dictionary.lemmas(l.toList.tail.head._2.head).flexions, dictionary.lemmas(l.toList.tail.head._2.head).posTag)
-    l1.flexions.foreach((flexion) => println(l1.word(flexion)))
+    dictionary.lookupOrSuggests("бутявка").foreach((lemma) => {
+      lemma.flexions.foreach((flexion) => println(lemma.word(flexion)))
+    })
+    dictionary.lookupOrSuggests("123").foreach((lemma) => {
+      lemma.flexions.foreach((flexion) => println(lemma.word(flexion)))
+    })
   }
 }
