@@ -1,13 +1,14 @@
-package od.andrey.morpher
+package od.andrey.morpher.dictionary
 
 import java.lang.IllegalArgumentException
 
 /**
  * Created by andrey on 12.06.2015.
  */
+@SerialVersionUID(1L)
 case class Flexion (ending: String,
                     ancode: String,
-                    prefix: String)
+                    prefix: String) extends Serializable
 
 object PartOfSpeech extends Enumeration {
   val Noun, Adjective, Numeral, Pronoun, Verb,
@@ -15,9 +16,10 @@ object PartOfSpeech extends Enumeration {
       Participle, Unknown = Value
 }
 
+@SerialVersionUID(1L)
 class Lemma (val base: String,
              val flexions: List[Flexion],
-             val posTag: PartOfSpeech.Value) {
+             val posTag: PartOfSpeech.Value) extends Serializable {
 
   def this(base: String, flexions: List[Flexion]) = {
     this(base, flexions,

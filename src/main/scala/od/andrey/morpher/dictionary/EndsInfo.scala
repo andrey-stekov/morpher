@@ -1,11 +1,13 @@
-package od.andrey.morpher
+package od.andrey.morpher.dictionary
 
 import scala.collection.mutable
+import od.andrey.morpher.common.Weights
 
 /**
  * Created by andrey on 15.06.2015.
  */
-class EndsInfo {
+@SerialVersionUID(1L)
+class EndsInfo extends Serializable {
   val info = new mutable.HashMap[Char, Weights[Int]]
 
   def += (base: String, flexionsId: Int) = {

@@ -1,11 +1,12 @@
-package od.andrey.morpher
+package od.andrey.morpher.common
 
 import scala.collection.mutable
 
 /**
  * Created by andrey on 15.06.2015.
  */
-class Weights[T] {
+@SerialVersionUID(1L)
+class Weights[T] extends Serializable {
   val groups = new mutable.HashMap[T, Double]
   var total = 0.0
 

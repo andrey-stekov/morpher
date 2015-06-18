@@ -1,12 +1,12 @@
-package od.andrey.morpher
+package od.andrey.morpher.common
 
 import scala.collection.mutable
 
 /**
  * Created by andrey on 13.06.2015.
  */
-
-class Trie[T] {
+@SerialVersionUID(1L)
+class Trie[T] extends Serializable {
   val root: Node[T] = new Node()
 
   def += (key: String, value: T) = {
@@ -65,7 +65,8 @@ class Trie[T] {
     result
   }
 
-  class Node[T] {
+  @SerialVersionUID(1L)
+  class Node[T] extends Serializable {
     var value: Option[T] = Option.empty
     val children: mutable.Map[Char, Node[T]] = new mutable.HashMap[Char, Node[T]]()
 
