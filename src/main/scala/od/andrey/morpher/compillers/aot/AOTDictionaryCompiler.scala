@@ -1,4 +1,4 @@
-package od.andrey.morpher.compillers
+package od.andrey.morpher.compillers.aot
 
 import scala.io.Source
 import java.io.{InputStream, InputStreamReader, BufferedReader}
@@ -6,6 +6,7 @@ import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicInteger
 import od.andrey.morpher.common.{Utils, Trie}
 import od.andrey.morpher.dictionary.{Dictionary, Flexion, Lemma, EndsInfo}
+import od.andrey.morpher.compillers.DictionaryCompiler
 
 /**
  * Created by andrey on 13.06.2015.

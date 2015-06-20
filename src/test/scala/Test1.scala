@@ -1,4 +1,4 @@
-import od.andrey.morpher.compillers.AOTDictionaryCompiler
+import od.andrey.morpher.compillers.aot.AOTDictionaryCompiler
 
 /**
  * Created by andrey on 14.06.2015.
