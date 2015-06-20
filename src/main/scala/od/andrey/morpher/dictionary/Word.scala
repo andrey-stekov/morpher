@@ -6,9 +6,9 @@ package od.andrey.morpher.dictionary
 class Word(word: String, lemma: Lemma, flexion: Flexion) {
   lazy val posTag = lemma.posTag
   lazy val ending = flexion.ending
-  lazy val ancode = flexion.ancode
+  lazy val attrs = flexion.attrs
   lazy val prefix = flexion.prefix
 
   override def toString: String =
-    "%s, %s %s".format(word, posTag, ancode)
+    "%s, %s %s".format(word, posTag, attrs)
 }

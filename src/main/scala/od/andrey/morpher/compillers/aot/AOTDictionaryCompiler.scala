@@ -3,10 +3,12 @@ package od.andrey.morpher.compillers.aot
 import scala.io.Source
 import java.io.{InputStream, InputStreamReader, BufferedReader}
 import scala.collection.mutable
+import scala.util.control.Breaks._
 import java.util.concurrent.atomic.AtomicInteger
 import od.andrey.morpher.common.{Utils, Trie}
 import od.andrey.morpher.dictionary.{Dictionary, Flexion, Lemma, EndsInfo}
 import od.andrey.morpher.compillers.DictionaryCompiler
+import od.andrey.morpher.dictionary.attributes.{Attribute, AnonymousAttributeBuilder}
 
 /**
  * Created by andrey on 13.06.2015.
@@ -26,8 +28,8 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
       .getLines()
       .filter((l) => !l.startsWith("//") && l.trim.nonEmpty)
       .map((l) => l.split(" ", 2))
-      .foldLeft(Map[String, String]())((m, t) => {
-        m + ((t(0), t(1)))
+      .foldLeft(Map[String, Set[Attribute]]())((m, t) => {
+        m + ((t(0), buildAttributes(t(1))))
       })
     println("Tab section read")
 
@@ -140,10 +142,41 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
     Utils.fixRussianChars(s).replace("#", "")
   }
 
-  private def buildFlexion(tabDescriptors: Map[String, String], affix: String, ancode: String, prefix: String) = {
+  private def buildFlexion(tabDescriptors: Map[String, Set[Attribute]], affix: String, ancode: String, prefix: String) = {
     new Flexion(
       fixChars(affix.toLowerCase()),
       tabDescriptors(ancode.substring(0, 2)),
       fixChars(prefix))
+  }
+
+  private val attributeBuilders = List(PartOfSpeechAttributeBuilder,
+                                       GenderAttributeBuilder,
+                                       GramInfoAttributeBuilder,
+                                       NumberAttributeBuilder,
+                                       PersonAttributeBuilder,
+                                       RuCaseAttributeBuilder,
+                                       TensesAttributeBuilder,
+                                       VoicesAttributeBuilder,
+                                       AnonymousAttributeBuilder)
+
+  private def buildAttributes(ancode: String): Set[Attribute] = {
+    val tags = ancode
+      .split("(\\s+|,)")
+      .map(_.trim)
+    var attrs = Set[Attribute]()
+    for (tag <- tags) {
+      breakable {
+        for (builder <- attributeBuilders) {
+          val attr = builder.build(tag)
+
+          if (attr.nonEmpty) {
+            attrs = attrs ++ attr
+            break
+          }
+        }
+      }
+    }
+
+    attrs
   }
 }
