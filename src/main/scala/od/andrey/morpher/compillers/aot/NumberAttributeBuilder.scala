@@ -1,6 +1,6 @@
 package od.andrey.morpher.compillers.aot
 
-import od.andrey.morpher.dictionary.attributes.AttributeBuilder
+import od.andrey.morpher.dictionary.attributes.{Number, AttributeBuilder}
 
 /**
  * Created by andrey on 20.06.2015.

@@ -54,7 +54,6 @@ class Dictionary(val allFlexions: mutable.MutableList[List[Flexion]],
 
   def wordInfo(word: String) = {
     lookupOrSuggests(word).map((lemma) => {
-      val id: AtomicInteger = new AtomicInteger
       val list = lemma.flexions
                       .foldLeft(List[Tuple2[Int, Flexion]]())((list, flexion) =>
                           (Utils.levenshteinDistance(word, lemma.word(flexion)), flexion) :: list)
