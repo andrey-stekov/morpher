@@ -15,14 +15,26 @@ import od.andrey.morpher.dictionary.attributes.{Attribute, AnonymousAttributeBui
  */
 
 class AOTDictionaryCompiler(val tabStream: InputStream,
-                            val mrdStream: InputStream) extends DictionaryCompiler {
+                            val mrdStream: InputStream,
+                            val prefixesStream: InputStream) extends DictionaryCompiler {
   val BATCH_SIZE = 1000
 
   def this() = this(Thread.currentThread().getContextClassLoader().getResourceAsStream("tab"),
-                    Thread.currentThread().getContextClassLoader().getResourceAsStream("mrd"))
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream("mrd"),
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream("prefixes"))
 
   def compile(): Dictionary = {
     println("Start dictionary initializing")
+
+    val plainPrefixes = Source.fromInputStream(prefixesStream)
+      .getLines()
+      .map(_.trim)
+      .filter((l) => !l.startsWith("//") && l.nonEmpty)
+      .map(_.split(","))
+      .foldLeft(new Trie[Boolean])((trie, list) => {
+        list.foreach((prefix) => trie += (prefix, true))
+        trie
+      })
 
     val tabDescriptors = Source.fromInputStream(tabStream)
       .getLines()
@@ -94,6 +106,7 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
                    postfixTree,
                    prefixTree,
                    postfixInfoTree,
+                   plainPrefixes,
                    Utils.fixRussianChars)
   }
 

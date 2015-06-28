@@ -2,7 +2,6 @@ package od.andrey.morpher.dictionary
 
 import scala.collection.mutable
 import od.andrey.morpher.common.{Utils, Trie}
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by andrey on 17.06.2015.
@@ -12,8 +11,13 @@ class Dictionary(val allFlexions: mutable.MutableList[List[Flexion]],
                  val lemmas: mutable.MutableList[Lemma],
                  val postfixTree: Trie[List[Int]],
                  val prefixTree: Trie[List[Int]],
-                 val postfixInfoTree: Trie[EndsInfo],
+                 val postfixInfoTrie: Trie[EndsInfo],
+                 val plainPrefixes: Trie[Boolean],
                  val fixChars: String => String) extends Serializable {
+
+//  protected def decomposition(word: String): Tuple2[Set[String], String] = {
+//
+//  }
 
   def lookup(word: String): Set[Lemma] = {
     val lower = fixChars(word.toLowerCase)
@@ -33,7 +37,7 @@ class Dictionary(val allFlexions: mutable.MutableList[List[Flexion]],
 
   def suggests(word:String): Set[Lemma] = {
     val lower = fixChars(word.toLowerCase)
-    val endings = postfixInfoTree.findVariants(lower.reverse)
+    val endings = postfixInfoTrie.findVariants(lower.reverse)
     endings.map((entry: Tuple2[String, EndsInfo]) => (entry._1.length, entry._2))
       .toList
       .sortBy(_._1)
