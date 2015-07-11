@@ -38,7 +38,9 @@ class Trie[T] extends Serializable {
   def findVariants(key: String) = {
     val result = new mutable.HashMap[String, T]()
 
-    result += (("", root.value.get))
+    if (root.value.nonEmpty) {
+      result += (("", root.value.get))
+    }
 
     val builder = new mutable.StringBuilder()
     val last = key.toCharArray.foldLeft[Node[T]](root)((current: Node[T], ch: Char) => {

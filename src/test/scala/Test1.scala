@@ -1,22 +1,16 @@
 import od.andrey.morpher.compillers.aot.AOTDictionaryCompiler
+import od.andrey.morpher.matchers.{PrefixUtils, DictionaryMatcher}
+import od.andrey.morpher.RuMorpher
 
 /**
  * Created by andrey on 14.06.2015.
  */
 object Test1 {
   def main(args: Array[String]) {
-    val dictionary = (new AOTDictionaryCompiler).compile
+    println(PrefixUtils.decompose("наипредопределенно"))
+    println(PrefixUtils.compose(List("наи", "пре", "до", "пре"), "деленно"))
 
-    dictionary.wordInfo("кудлачит").foreach(println)
-
-    dictionary.lookupOrSuggests("суки").foreach((lemma) => {
-      lemma.flexions.foreach((flexion) => println(lemma.word(flexion) + ", " + flexion.attrs))
-    })
-//    dictionary.lookupOrSuggests("бутявка").foreach((lemma) => {
-//      lemma.flexions.foreach((flexion) => println(lemma.word(flexion)))
-//    })
-//    dictionary.lookupOrSuggests("123").foreach((lemma) => {
-//      lemma.flexions.foreach((flexion) => println(lemma.word(flexion)))
-//    })
+    val res = RuMorpher.all("наипредопределенное")
+    println(res)
   }
 }

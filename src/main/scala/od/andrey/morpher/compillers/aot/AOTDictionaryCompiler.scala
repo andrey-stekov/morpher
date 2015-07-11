@@ -15,26 +15,15 @@ import od.andrey.morpher.dictionary.attributes.{Attribute, AnonymousAttributeBui
  */
 
 class AOTDictionaryCompiler(val tabStream: InputStream,
-                            val mrdStream: InputStream,
-                            val prefixesStream: InputStream) extends DictionaryCompiler {
+                            val mrdStream: InputStream) extends DictionaryCompiler {
   val BATCH_SIZE = 1000
 
   def this() = this(Thread.currentThread().getContextClassLoader().getResourceAsStream("tab"),
-                    Thread.currentThread().getContextClassLoader().getResourceAsStream("mrd"),
-                    Thread.currentThread().getContextClassLoader().getResourceAsStream("prefixes"))
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream("mrd"))
 
   def compile(): Dictionary = {
     println("Start dictionary initializing")
 
-    val plainPrefixes = Source.fromInputStream(prefixesStream)
-      .getLines()
-      .map(_.trim)
-      .filter((l) => !l.startsWith("//") && l.nonEmpty)
-      .map(_.split(","))
-      .foldLeft(new Trie[Boolean])((trie, list) => {
-        list.foreach((prefix) => trie += (prefix, true))
-        trie
-      })
 
     val tabDescriptors = Source.fromInputStream(tabStream)
       .getLines()
@@ -54,7 +43,7 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
           case List(s) => if (s.nonEmpty) throw new IllegalStateException("Illegal MRD item: \"%s\"".format(item)) else null
         }
       }).filter(_ != null).toList
-    }, false)
+    }, logging = false)
     println("Flexions section read")
 
     skipSection(mrdReader) // accentual models
@@ -98,7 +87,7 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
             true
           })
       }
-    }, true)
+    }, logging = true)
     println("Lemmas section read")
 
     new Dictionary(allFlexions,
@@ -106,7 +95,6 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
                    postfixTree,
                    prefixTree,
                    postfixInfoTree,
-                   plainPrefixes,
                    Utils.fixRussianChars)
   }
 
@@ -157,7 +145,7 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
 
   private def buildFlexion(tabDescriptors: Map[String, Set[Attribute]], affix: String, ancode: String, prefix: String) = {
     new Flexion(
-      fixChars(affix.toLowerCase()),
+      fixChars(affix.toLowerCase),
       tabDescriptors(ancode.substring(0, 2)),
       fixChars(prefix))
   }
@@ -184,7 +172,7 @@ class AOTDictionaryCompiler(val tabStream: InputStream,
 
           if (attr.nonEmpty) {
             attrs = attrs ++ attr
-            break
+            break()
           }
         }
       }
