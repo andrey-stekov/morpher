@@ -1,6 +1,7 @@
 package od.andrey.morpher.matchers
 
 import od.andrey.morpher.dictionary.{Flexion, Lemma}
+import od.andrey.morpher.dictionary.attributes.{Gender, RuCase, Number}
 
 /**
  * Created by andrey on 27.06.2015.
@@ -13,7 +14,10 @@ abstract class MatchingResult(val word: String, val matcher: Matcher) {
 
 class Word(word: String, matcher: Matcher, val lemma: Lemma, val flexion: Flexion)
   extends MatchingResult(word, matcher) {
-  override def normalForm = "null" //ToDo
+  override def normalForm = lemma.findClose(RuCase.Nom, Number.Singular, Gender.Male) match {
+    case Some(form) => form
+    case None => lemma.word(flexion)
+  }
 }
 
 class ComplexWord(word: String, matcher: Matcher, lemma: Lemma,

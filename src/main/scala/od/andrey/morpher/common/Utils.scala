@@ -42,4 +42,11 @@ object Utils {
   }
 
   def loadDictionary(path: String): Dictionary = loadDictionary(new FileInputStream(new File(path)))
+
+  lazy val similarChars = {
+    val forwardDirection = Map('б' -> 'п', 'в' -> 'ф', 'г' -> 'к', 'д' -> 'т', 'ж' -> 'ш', 'з' -> 'с')
+    val backwardDirection = forwardDirection
+                              .map((t: Tuple2[Char, Char]) => (t._2, t._1))
+    forwardDirection ++ backwardDirection
+  }
 }
